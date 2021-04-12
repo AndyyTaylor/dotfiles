@@ -1,0 +1,20 @@
+{
+    "workbench.startupEditor": "newUntitledFile",
+    "workbench.colorTheme": "One Dark Pro",
+    "workbench.iconTheme": "material-icon-theme",
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 300,
+    "vim.smartRelativeLine": true,
+    "vim.startInInsertMode": false,
+    "vim.insertModeKeyBindings": [
+        {
+            "before": ["e", "u"],
+            "after": ["<Esc>"]
+        }
+    ],
+    "python.dataScience.askForKernelRestart": false,
+    "vim.timeout": 200,
+    "window.zoomLevel": 0,
+    "vim.useCtrlKeys": false,
+    "go.toolsManagement.autoUpdate": true
+}
