@@ -9,6 +9,10 @@ openvpn3 session-start --config ~/Downloads/client.ovpn
 
 xfreerdp -grab-keyboard /multimon /u:optiver\\andtay /v:andtay
 
+$mod+Shift+f to make the xfreerdp screen multimonitor
+
+openvpn3 session-manage --disconnect --config ~/Downloads/client.ovpn
+
 ## Wifi 'working' but crazy slow
 
 Add to `/etc/modprobe.d/iwlwifi.conf`
