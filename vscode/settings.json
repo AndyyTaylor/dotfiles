@@ -1,0 +1,25 @@
+{
+    "workbench.startupEditor": "newUntitledFile",
+    "workbench.iconTheme": "material-icon-theme",
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 300,
+    "vim.smartRelativeLine": true,
+    "vim.startInInsertMode": false,
+    "vim.timeout": 200,
+    "vim.useCtrlKeys": false,
+    "editor.acceptSuggestionOnEnter": "off",
+    "extensions.ignoreRecommendations": true,
+    "workbench.editor.untitled.hint": "hidden",
+    "diffEditor.ignoreTrimWhitespace": false,
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/*/**": true,
+        "**/.hg/store/**": true,
+        "**/target**": true
+    },
+    "notebook.output.textLineLimit": 20,
+    "jupyter.askForKernelRestart": false,
+    "explorer.confirmDelete": false,
+    "workbench.colorTheme": "Nord"
+}
