@@ -1,0 +1,5 @@
+material theme darker
+material icon theme
+
+
+rust, vim, jupyter, copilot, error lens, better comments, rust analyzer

@@ -1,6 +1,5 @@
 {
     "workbench.startupEditor": "newUntitledFile",
-    "workbench.iconTheme": "material-icon-theme",
     "files.autoSave": "afterDelay",
     "files.autoSaveDelay": 300,
     "vim.smartRelativeLine": true,
@@ -21,5 +20,46 @@
     "notebook.output.textLineLimit": 20,
     "jupyter.askForKernelRestart": false,
     "explorer.confirmDelete": false,
-    "workbench.colorTheme": "Nord"
+    "workbench.colorTheme": "Material Theme Darker",
+    "workbench.iconTheme": "material-icon-theme",
+    "cmake.configureOnOpen": false,
+    "rust.clippy_preference": "on",
+    "editor.minimap.enabled": false,
+    "terminal.integrated.tabs.enabled": false,
+    "editor.suggest.showTypeParameters": false,
+    "rust-client.logToFile": true,
+    "rust-client.engine": "rust-analyzer",
+    "rust.rust-analyzer.path": "~/.local/bin/rust-analyzer",
+    "rust-analyzer.server.path": "~/.local/bin/rust-analyzer",
+    "editor.semanticTokenColorCustomizations": {
+        "enabled": true,
+        "rules": {
+            "*.mutable": {
+                "underline": false,
+            }
+        }
+    },
+    "vim.normalModeKeyBindingsNonRecursive": [
+        {
+            "before": ["s"],
+            "after": ["leader", "leader", "2", "s"]
+        },
+        {
+            "before": ["'"],
+            "after": ["`"]
+        }
+    ],
+    "vim.easymotion": true,
+    "vim.leader": "<space>",
+    "vim.showMarksInGutter": true,
+    "rust-analyzer.inlayHints.typeHints.enable": false,
+    "rust-analyzer.inlayHints.chainingHints.enable": false,
+    "rust-analyzer.inlayHints.parameterHints.enable": false,
+    "jupyter.widgetScriptSources": [
+        "jsdelivr.com",
+        "unpkg.com"
+    ],
+    "editor.inlineSuggest.enabled": true,
+    "git.openRepositoryInParentFolders": "always",
+    "notebook.navigation.allowNavigateToSurroundingCells": false,
 }
