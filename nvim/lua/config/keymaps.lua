@@ -46,6 +46,32 @@ for key, label in pairs(directions) do
   )
 end
 
+-- ---------------------------------------------------------------------------
+-- <S-CR> / <C-CR> in a terminal: insert a newline instead of submitting.
+--
+-- Neovim's terminal emulator encodes both Enter and Shift-Enter as a bare CR, so
+-- a CLI reading the pty cannot tell them apart -- pressing Shift-Enter in the
+-- claude pane submitted the prompt instead of opening a new line.
+--
+-- ESC CR is the sequence claude's own `/terminal-setup` installs into VS Code,
+-- Alacritty and Zed for exactly this, and its input parser reads `\r` and
+-- `\x1B\r` as return with meta set. Sending it verbatim gets the same result
+-- without touching the outer terminal's config. Verified with `cat`: the job
+-- receives 1b 0a with this map versus a bare 0a without it.
+--
+-- Requires the outer terminal to report Shift-Enter distinctly (kitty keyboard
+-- protocol -- foot does). Where it doesn't, claude's own fallbacks still work:
+-- Alt-Enter, or a trailing backslash before Enter.
+-- ---------------------------------------------------------------------------
+for _, lhs in ipairs({ "<S-CR>", "<C-CR>" }) do
+  vim.keymap.set("t", lhs, function()
+    local job = vim.b.terminal_job_id
+    if job then
+      vim.api.nvim_chan_send(job, "\27\r")
+    end
+  end, { desc = "Terminal: newline (meta-return)" })
+end
+
 -- Literal-key escape hatch: read the next keypress raw and write it straight to the
 -- terminal job, bypassing the mappings above.
 vim.keymap.set("t", "<C-v>", function()
