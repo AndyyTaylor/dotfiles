@@ -38,13 +38,71 @@ vim.keymap.set("n", "<C-h>", sideterm.smart_left, { desc = "Go to Left Window" }
 -- ---------------------------------------------------------------------------
 local directions = { h = "Left", j = "Lower", k = "Upper", l = "Right" }
 for key, label in pairs(directions) do
-  vim.keymap.set(
-    "t",
-    "<C-" .. key .. ">",
-    "<C-\\><C-n><C-w>" .. key,
-    { desc = "Go to " .. label .. " Window" }
-  )
+  -- Expr map rather than a plain rhs: the naive "<C-\><C-n><C-w>{key}" leaves
+  -- terminal mode *before* attempting the move, so pressing it with no window
+  -- that way (e.g. <C-j> in the bottom pane) silently dropped you into
+  -- terminal-normal mode with nothing else to show for it. winnr() returns the
+  -- current window when there's nothing in the given direction, so that case
+  -- now stays in terminal mode and keeps typing.
+  vim.keymap.set("t", "<C-" .. key .. ">", function()
+    if vim.fn.winnr(key) == vim.fn.winnr() then
+      return ""
+    end
+    return "<C-\\><C-n><C-w>" .. key
+  end, { expr = true, desc = "Go to " .. label .. " Window" })
 end
+
+-- ---------------------------------------------------------------------------
+-- <Esc> in a terminal: leave terminal mode, but only at a shell prompt.
+--
+-- <C-\><C-n> is the built-in way out and it is a horrible chord to reach. Esc
+-- cannot simply be bound to it, though: claude, less, htop and a nested nvim all
+-- need to receive Esc themselves.
+--
+-- So ask the pty who owns the terminal right now. Field 8 of /proc/<pid>/stat is
+-- tpgid -- the foreground process group of the terminal -- and its comm names the
+-- program actually in charge. At a prompt that is the shell itself, so Esc is
+-- free to mean "back to normal mode"; while anything else runs, Esc is forwarded
+-- untouched. Detection failures fall through to forwarding, so a stray Esc can
+-- never be swallowed from a running program.
+--
+-- <C-\><C-n> still works everywhere, including inside claude.
+-- ---------------------------------------------------------------------------
+local SHELLS = { zsh = true, bash = true, sh = true, dash = true, fish = true, ksh = true }
+
+local function at_shell_prompt()
+  local pid = vim.b.terminal_job_pid
+  if not pid then
+    return false
+  end
+  local stat = io.open("/proc/" .. pid .. "/stat")
+  if not stat then
+    return false
+  end
+  local line = stat:read("l")
+  stat:close()
+  -- comm sits in parens and may itself contain spaces, so parse after the last ")"
+  local rest = line and line:match("%)%s+(.*)$")
+  if not rest then
+    return false
+  end
+  local fields = vim.split(rest, " ", { trimempty = true })
+  local tpgid = tonumber(fields[6])
+  if not tpgid or tpgid <= 0 then
+    return false
+  end
+  local comm_file = io.open("/proc/" .. tpgid .. "/comm")
+  if not comm_file then
+    return false
+  end
+  local comm = comm_file:read("l")
+  comm_file:close()
+  return comm ~= nil and SHELLS[comm] == true
+end
+
+vim.keymap.set("t", "<Esc>", function()
+  return at_shell_prompt() and "<C-\\><C-n>" or "<Esc>"
+end, { expr = true, desc = "Terminal: normal mode (only at a shell prompt)" })
 
 -- ---------------------------------------------------------------------------
 -- <S-CR> / <C-CR> in a terminal: insert a newline instead of submitting.
