@@ -141,6 +141,34 @@ vim.keymap.set("t", "<C-v>", function()
 end, { desc = "Terminal: send next key literally" })
 
 -- ---------------------------------------------------------------------------
+-- <CR> before a closing bracket: open the block out to three lines.
+--
+-- mini.pairs already maps <CR>, but MiniPairs.cr() only expands when the cursor
+-- sits *directly* between a pair -- "(|)" -- since it looks at the immediate
+-- neighbours only. Pressing Enter after the last argument of a call,
+-- "args.jobs,|)", just carried the ")" down to a line of its own, and a line
+-- starting with a closing bracket indents to statement level -- leaving the
+-- cursor one level short of the arguments above it.
+--
+-- Expanding whenever a closing bracket follows the cursor gives the VS Code
+-- behaviour: the bracket drops to its own line and the cursor stays on a
+-- continuation line between the two. Everything else falls through to
+-- mini.pairs, so its quote and pair handling is untouched.
+-- ---------------------------------------------------------------------------
+local CR = vim.keycode("<CR>")
+local CR_EXPAND = vim.keycode("<CR><C-o>O") -- same "open above" keys mini.pairs uses
+
+vim.keymap.set("i", "<CR>", function()
+  local line = vim.api.nvim_get_current_line()
+  -- in insert mode col(".") is the index of the character *after* the cursor
+  local after = line:sub(vim.fn.col("."), vim.fn.col("."))
+  if after:match("^[%)%]}]$") then
+    return CR_EXPAND
+  end
+  return _G.MiniPairs and MiniPairs.cr() or CR
+end, { expr = true, replace_keycodes = false, desc = "Newline (expand before closing bracket)" })
+
+-- ---------------------------------------------------------------------------
 -- <C-Tab> : VSCode-style recently-viewed file switcher.
 --
 -- Opens the open-buffer list sorted by last use, with the previously viewed file
