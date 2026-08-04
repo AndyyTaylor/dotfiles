@@ -9,6 +9,7 @@ set -euo pipefail
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STAMP="$(date +%Y%m%d%H%M%S)"
 CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
+OS="$(uname -s)"
 
 link() {
     local src="$DOTFILES/$1" dst="$2"
@@ -33,6 +34,23 @@ link() {
 
 echo "neovim (whole dir, so lazy-lock.json stays tracked)"
 link nvim "$CONFIG/nvim"
+
+# the mac borrows nvim and a terminal, nothing else -- everything below this block
+# is sway-desktop specific with no mac equivalent, and zsh/zshrc in particular is
+# manjaro-only and would clobber a working ~/.zshrc.
+if [ "$OS" = "Darwin" ]; then
+    echo "kitty (mac terminal; foot is linux-only)"
+    link kitty/kitty.conf "$CONFIG/kitty/kitty.conf"
+
+    cat <<'NOTE'
+
+done. kitty and nvim pick changes up on next launch.
+first run on a new mac also needs:
+  brew install neovim ripgrep fd lazygit
+  brew install --cask kitty font-jetbrains-mono-nerd-font
+NOTE
+    exit 0
+fi
 
 echo "vscode (Code - OSS)"
 link vscode/settings.json    "$CONFIG/Code - OSS/User/settings.json"
