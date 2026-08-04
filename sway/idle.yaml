@@ -1,0 +1,15 @@
+# User override of /etc/sway/idle.yaml (swayidle-conf merges by top-level key,
+# so this `timeouts` list REPLACES the system one wholesale).
+# Removed vs stock: brightness dimming, keyboard backlight, and both
+# systemctl-sleep timers — this box must never auto-suspend (background jobs).
+timeouts:
+  # locking_timeout — via the wrapper so the fan RGB goes dark while locked
+  - timeout: 1800
+    command: /home/andy/.local/bin/lockscreen
+  # screen_timeout — 1 min after auto-lock (30m + 1m)
+  - timeout: 1860
+    command: swaymsg "output * power off"
+    resume: swaymsg "output * power on"
+before-sleep: /home/andy/.local/bin/lockscreen
+after-resume: swaymsg "output * power on"
+lock: /home/andy/.local/bin/lockscreen

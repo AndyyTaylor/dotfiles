@@ -1,0 +1,25 @@
+# Use powerline
+USE_POWERLINE="true"
+# Has weird character width
+# Example:
+#    is not a diamond
+HAS_WIDECHARS="false"
+# Source manjaro-zsh-configuration
+if [[ -e /usr/share/zsh/manjaro-zsh-config ]]; then
+  source /usr/share/zsh/manjaro-zsh-config
+fi
+
+# Kill the "correct 'pip' to '_pip' [nyae]?" prompt. /usr/share/zsh/manjaro-zsh-config
+# line 2 does `setopt correct`; that file is package-owned and gets replaced on
+# update, so it is undone here instead of edited there. Must come after the source
+# above. correctall is not set by Manjaro, but is unset too in case that changes.
+unsetopt correct
+unsetopt correctall
+
+# Use manjaro zsh prompt
+PROMPT='%F{red}Δ%f '
+RPROMPT=''
+
+# dex = the trading repo CLI (shadows /usr/bin/dex in interactive shells only,
+# so sway autostart still gets the real DesktopEntry tool)
+alias dex='/home/andy/dex/.venv/bin/python /home/andy/dex/py/main.py'
