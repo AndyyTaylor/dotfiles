@@ -75,6 +75,14 @@ end
 -- LazyVim's format-on-save. That is deliberate and matches VSCode: it does not
 -- run formatOnSave for afterDelay autosaves, only for explicit saves. Pressing
 -- <C-s> / :w still formats as normal.
+--
+-- Every modified buffer is written, not just the one being typed in, and
+-- BufModifiedSet is a trigger alongside the text events. An LSP rename edits
+-- every file the symbol appears in, loading the untouched ones as hidden
+-- buffers; those fire no TextChanged (that only fires for the current buffer)
+-- and were left dirty, so the tree stayed broken until each file was opened by
+-- hand. BufModifiedSet fires for hidden buffers too, so the rename now lands on
+-- disk in full.
 -- ---------------------------------------------------------------------------
 local AUTOSAVE_DELAY_MS = 200
 
@@ -97,22 +105,21 @@ local function should_save(buf)
   return vim.api.nvim_buf_get_name(buf) ~= ""
 end
 
-vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI", "InsertLeave" }, {
-  group = group,
-  desc = "Autosave after a short idle delay",
-  callback = function(ev)
-    local buf = ev.buf
-    timer:stop()
-    timer:start(
-      AUTOSAVE_DELAY_MS,
-      0,
-      vim.schedule_wrap(function()
-        if should_save(buf) then
-          vim.api.nvim_buf_call(buf, function()
-            vim.cmd("silent! noautocmd write")
-          end)
-        end
+local function save_dirty_buffers()
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if should_save(buf) then
+      vim.api.nvim_buf_call(buf, function()
+        vim.cmd("silent! noautocmd write")
       end)
-    )
+    end
+  end
+end
+
+vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI", "InsertLeave", "BufModifiedSet" }, {
+  group = group,
+  desc = "Autosave every modified buffer after a short idle delay",
+  callback = function()
+    timer:stop()
+    timer:start(AUTOSAVE_DELAY_MS, 0, vim.schedule_wrap(save_dirty_buffers))
   end,
 })
