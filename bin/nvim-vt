@@ -1,0 +1,11 @@
+#!/bin/sh
+# CPU-rendered nvim session, immune to GPU saturation from training runs.
+#
+# Usage: switch to a spare virtual terminal (Ctrl+Alt+F3), log in, run `nvim-vt`.
+# Ctrl+Alt+F1 flips back to the normal sway session; this keeps running.
+#
+# cage is a single-window wayland compositor; with WLR_RENDERER=pixman its whole
+# display path (client rendering AND compositing) runs on the CPU, so nothing
+# here ever waits on the GPU. Client env vars alone can't do this -- compositing
+# happens in the compositor's process with the compositor's renderer.
+exec env WLR_RENDERER=pixman cage -- foot -e nvim "$@"

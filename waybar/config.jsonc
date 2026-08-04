@@ -1,0 +1,30 @@
+{
+    "include": [
+        "/usr/share/sway/templates/waybar/config.jsonc"
+    ],
+    "position": "bottom",
+    "modules-left": [
+        "sway/workspaces",
+        "custom/scratchpad"
+    ],
+    "modules-center": [
+        "custom/wf-recorder",
+        "sway/mode"
+    ],
+    "modules-right": [
+        "custom/github",
+        "custom/zeit",
+        "battery",
+        "network",
+        "bluetooth",
+        "custom/valent",
+        "custom/playerctl",
+        "custom/idle_inhibitor",
+        "backlight",
+        "custom/theme",
+        "custom/adaptive-light",
+        "custom/pacman",
+        "tray",
+        "clock"
+    ]
+}

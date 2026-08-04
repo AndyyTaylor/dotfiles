@@ -1,14 +1,18 @@
 {
+    "editor.fontFamily": "'Cascadia Code NF', monospace",
+    "editor.fontSize": 13,
+    "editor.fontLigatures": true,
+    "editor.fontWeight": "500",
+    "terminal.integrated.fontFamily": "JetBrainsMono NF, 'Terminess Nerd Font Mono', monospace",
     "workbench.startupEditor": "newUntitledFile",
     "files.autoSave": "afterDelay",
-    "files.autoSaveDelay": 300,
+    "files.autoSaveDelay": 200,
     "vim.smartRelativeLine": true,
     "vim.startInInsertMode": false,
     "vim.timeout": 200,
     "vim.useCtrlKeys": false,
     "editor.acceptSuggestionOnEnter": "off",
     "extensions.ignoreRecommendations": true,
-    "workbench.editor.untitled.hint": "hidden",
     "diffEditor.ignoreTrimWhitespace": false,
     "files.watcherExclude": {
         "**/.git/objects/**": true,
@@ -20,8 +24,6 @@
     "notebook.output.textLineLimit": 20,
     "jupyter.askForKernelRestart": false,
     "explorer.confirmDelete": false,
-    "workbench.colorTheme": "Material Theme Darker",
-    "workbench.iconTheme": "material-icon-theme",
     "cmake.configureOnOpen": false,
     "rust.clippy_preference": "on",
     "editor.minimap.enabled": false,
@@ -29,8 +31,6 @@
     "editor.suggest.showTypeParameters": false,
     "rust-client.logToFile": true,
     "rust-client.engine": "rust-analyzer",
-    "rust.rust-analyzer.path": "~/.local/bin/rust-analyzer",
-    "rust-analyzer.server.path": "~/.local/bin/rust-analyzer",
     "editor.semanticTokenColorCustomizations": {
         "enabled": true,
         "rules": {
@@ -42,24 +42,105 @@
     "vim.normalModeKeyBindingsNonRecursive": [
         {
             "before": ["s"],
-            "after": ["leader", "leader", "2", "s"]
+            "after": ["<leader>", "<leader>", "2", "s"]
         },
         {
             "before": ["'"],
             "after": ["`"]
+        },
+        {
+            "before": ["u"],
+            "after": [],
+            "commands": [
+                {
+                    "command": "undo"
+                }
+            ]
+        },
+        {
+            "before": ["<C-r>"],
+            "after": [],
+            "commands": [
+                {
+                    "command": "redo"
+                }
+            ]
         }
     ],
+    "rust-analyzer.lens.enable": false,
     "vim.easymotion": true,
+    "editor.editContext": false, // sticky-keys fix: editcontext input path delivered alternate keys as replacePreviousChar, which vim normal mode drops
     "vim.leader": "<space>",
     "vim.showMarksInGutter": true,
-    "rust-analyzer.inlayHints.typeHints.enable": false,
-    "rust-analyzer.inlayHints.chainingHints.enable": false,
-    "rust-analyzer.inlayHints.parameterHints.enable": false,
     "jupyter.widgetScriptSources": [
         "jsdelivr.com",
         "unpkg.com"
     ],
+    "extensions.experimental.affinity": {
+        "vscode.vim": 1
+    },
     "editor.inlineSuggest.enabled": true,
     "git.openRepositoryInParentFolders": "always",
     "notebook.navigation.allowNavigateToSurroundingCells": false,
+    "update.showReleaseNotes": false,
+    "github.copilot.enable": {
+        "plaintext": false,
+        "markdown": false,
+        "scminput": false,
+        "*": false
+    },
+    "workbench.editor.empty.hint": "hidden",
+    "diffEditor.renderSideBySide": true,
+    "rust-analyzer.inlayHints.closureStyle": "rust_analyzer",
+    "rust-analyzer.inlayHints.closureReturnTypeHints.enable": "with_block",
+    "rust-analyzer.inlayHints.bindingModeHints.enable": true,
+    "rust-analyzer.inlayHints.typeHints.enable": false,
+    "rust-analyzer.inlayHints.chainingHints.enable": false,
+    "rust-analyzer.inlayHints.parameterHints.enable": false,
+    "workbench.editorAssociations": {
+        "*.svg": "svgPreviewer.customEditor"
+    },
+    "svg.preview.transparencyGrid": false,
+    "svg.preview.boundingBox": false,
+    "python.createEnvironment.trigger": "off",
+    "github.copilot.chat.welcomeMessage": "never",
+    "github.copilot.advanced": {
+
+    },
+    "notebook.lineNumbers": "on",
+    "explorer.confirmDragAndDrop": false,
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "editor.inlayHints.enabled": "off",
+    "workbench.sideBar.location": "right",
+    "inlineChat.lineNaturalLanguageHint": false,
+    "workbench.colorTheme": "Catppuccin Mocha Darker",
+    "claudeCode.useTerminal": true,
+    "clangd.arguments": [
+        "--compile-commands-dir=build",
+        "--function-arg-placeholders=0"
+    ],
+    "workbench.browser.openLocalhostLinks": false,
+    "chat.disableAIFeatures": true,
+    "files.exclude": {
+        "**/__pycache__": true
+    },
+    // basedpyright defaults to "recommended" (everything on, as errors). "standard"
+    // matches upstream pyright and clears the strictness family: reportAny,
+    // reportUnknown*Type, reportUnusedCallResult, reportImplicitRelativeImport,
+    // reportImplicitStringConcatenation, reportImplicitOverride,
+    // reportUnannotatedClassAttribute, reportMissingTypeStubs.
+    "basedpyright.analysis.typeCheckingMode": "standard",
+    "basedpyright.analysis.diagnosticSeverityOverrides": {
+        // remaining rules that still fired on dex/py, silenced on request
+        "reportArgumentType": "none",
+        "reportOptionalIterable": "none",
+        "reportAttributeAccessIssue": "none",
+        // catches genuine typos as well as missing imports — see note, easy to flip back
+        "reportUndefinedVariable": "none",
+        "reportConstantRedefinition": "none",
+        "reportMissingTypeArgument": "none",
+        "reportUninitializedInstanceVariable": "none",
+        "reportDeprecated": "none",
+        "reportUnusedImport": "none"
+    },
 }

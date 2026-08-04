@@ -1,0 +1,39 @@
+window {
+  background-color: #000000;
+}
+
+/* input box: black fill, white outline, white text/dots */
+entry, #input-field {
+  background-color: #000000;
+  color: #ffffff;
+  caret-color: #ffffff;
+  border: 2px solid #ffffff;
+  border-radius: 8px;
+  min-height: 34px;
+  padding: 4px 12px;
+  font-size: 16px;
+}
+
+/* hide the "Password" label (and placeholder variant) */
+#input-label {
+  opacity: 0;
+  font-size: 1px;
+  min-height: 0;
+}
+entry placeholder {
+  opacity: 0;
+}
+
+/* hide the unlock button — Enter submits */
+button, #unlock-button {
+  opacity: 0;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+}
+
+label {
+  color: #ffffff;
+}
