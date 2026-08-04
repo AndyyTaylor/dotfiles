@@ -54,10 +54,14 @@ return {
           settings = {
             basedpyright = {
               analysis = {
-                -- "recommended" (the basedpyright default) turns on ~30 extra strict
-                -- rules and reports every missing annotation; "standard" matches what
-                -- pyright/Pylance report in VSCode.
-                typeCheckingMode = "standard",
+                -- No type diagnostics at all. Python's optional typing plus loose
+                -- library stubs (torch.onnx.export returning ONNXProgram | None,
+                -- tensors indexed with numpy bool arrays) means the useful signal
+                -- is buried in complaints about things that are fine at runtime.
+                -- Everything else the server does -- hover, completion, go to
+                -- definition, references, unresolved-import errors -- is unaffected,
+                -- and ruff still reports real bugs like undefined names.
+                typeCheckingMode = "off",
                 diagnosticMode = "openFilesOnly",
                 autoSearchPaths = true,
                 useLibraryCodeForTypes = true,
