@@ -1,7 +1,10 @@
 #!/bin/sh
-# Lock the session, with the fan ARGB ring dark while locked.
-# gtklock runs in the foreground (no -d) so this script knows when unlock
-# happens and can restore the blue. Needs the NOPASSWD sudoers rule for
+# Lock the session, with the fan ARGB ring dark while locked and the displays
+# powering off 1 min after the lock appears.
+#
+# gtklock runs in the background here (not -d) so this script owns its lifetime:
+# it can hold the fan dark and run a nested swayidle for the duration of the
+# lock, then clean both up on unlock. Needs the NOPASSWD sudoers rule for
 # framework_tool --rgbkbd; -n + || true so a missing rule never blocks locking.
 
 # ext-session-lock allows one locker; if idle-lock fires while already locked,
@@ -11,8 +14,28 @@ pgrep -x gtklock >/dev/null && exit 0
 OFF="0x000000"
 BLUE="0x1793D1"
 
-sudo -n /usr/bin/framework_tool --rgbkbd 0 $OFF $OFF $OFF $OFF $OFF $OFF $OFF $OFF >/dev/null 2>&1 || true
+rgb() {
+	sudo -n /usr/bin/framework_tool --rgbkbd 0 "$1" "$1" "$1" "$1" "$1" "$1" "$1" "$1" >/dev/null 2>&1 || true
+}
 
-GDK_BACKEND=wayland gtklock -M HDMI-A-1 -s /home/andy/.config/gtklock/style.css
+rgb $OFF
 
-sudo -n /usr/bin/framework_tool --rgbkbd 0 $BLUE $BLUE $BLUE $BLUE $BLUE $BLUE $BLUE $BLUE >/dev/null 2>&1 || true
+GDK_BACKEND=wayland gtklock -M HDMI-A-1 -s /home/andy/.config/gtklock/style.css &
+gtklock_pid=$!
+
+# While locked, blank the displays after 1 min of no input — far sooner than the
+# main daemon's 31 min. resume wakes them when you touch the mouse to type the
+# password. Dies with the lock, so the normal timeouts apply again after unlock.
+swayidle -w \
+	timeout 60 'swaymsg "output * power off"' \
+	resume 'swaymsg "output * power on"' &
+idle_pid=$!
+
+trap 'kill $idle_pid 2>/dev/null' EXIT INT TERM
+
+wait $gtklock_pid
+
+kill $idle_pid 2>/dev/null
+swaymsg "output * power on" >/dev/null 2>&1
+
+rgb $BLUE
