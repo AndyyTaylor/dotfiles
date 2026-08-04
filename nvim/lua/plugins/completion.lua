@@ -12,6 +12,10 @@ return {
     "saghen/blink.cmp",
     opts = {
       keymap = { preset = "super-tab" },
+      -- No inline preview of the selected item. blink defaults this off; it is on
+      -- here only because LazyVim sets vim.g.ai_cmp, which exists for AI sources
+      -- previewing inline but also applies to ordinary LSP completions.
+      completion = { ghost_text = { enabled = false } },
     },
   },
 }
