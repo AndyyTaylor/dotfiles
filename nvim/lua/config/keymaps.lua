@@ -287,3 +287,6 @@ end, { desc = "Next Error" })
 vim.keymap.set("n", "<leader>n", function()
   Snacks.explorer({ cwd = LazyVim.root() })
 end, { desc = "Explorer (Root Dir)" })
+
+-- Ctrl+Click a file path in a terminal pane to open it (config/pathopen.lua).
+require("config.pathopen").setup()
