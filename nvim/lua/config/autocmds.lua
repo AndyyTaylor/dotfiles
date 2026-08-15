@@ -44,17 +44,20 @@ vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "TermOpen" }, {
 })
 
 -- ---------------------------------------------------------------------------
--- Open the sideterm column and the file explorer at startup.
+-- Open the file explorer at startup.
 --
 -- Only when nvim is opened as "the IDE" -- no args (`nvim`) or a single directory
 -- arg (`nvim .`, `nvim ~/dex`). Editing a specific file (git commit messages,
--- quick one-off edits) skips both, so no `claude agents` process is spawned there.
+-- quick one-off edits) skips it.
+--
+-- The sideterm column (lua/config/sideterm.lua) is deliberately *not* opened here:
+-- it is on-demand only, via <leader>tt / <leader>ta / <leader>ts or :SideTerm. That
+-- also means `claude agents` is only spawned once the column is first opened.
 --
 -- This file loads on VeryLazy, which fires *after* VimEnter, so the usual VimEnter
 -- autocmd would never run -- hence the vim_did_enter branch.
 -- ---------------------------------------------------------------------------
 local function open_workspace_ui()
-  require("config.sideterm").open()
   -- focus=false: the explorer window opens but the cursor stays in the editor.
   Snacks.explorer({ focus = false })
 end
