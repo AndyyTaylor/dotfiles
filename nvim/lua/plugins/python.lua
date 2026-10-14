@@ -60,7 +60,7 @@ return {
                 -- is buried in complaints about things that are fine at runtime.
                 -- Everything else the server does -- hover, completion, go to
                 -- definition, references, unresolved-import errors -- is unaffected,
-                -- and ruff still reports real bugs like undefined names.
+                -- and basedpyright still reports undefined names (severity set in pyproject.toml).
                 typeCheckingMode = "off",
                 diagnosticMode = "openFilesOnly",
                 autoSearchPaths = true,
