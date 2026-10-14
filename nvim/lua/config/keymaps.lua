@@ -290,3 +290,7 @@ end, { desc = "Explorer (Root Dir)" })
 
 -- Ctrl+Click a file path in a terminal pane to open it (config/pathopen.lua).
 require("config.pathopen").setup()
+
+vim.keymap.set("n", "<leader>gd", require("config.review").toggle, { desc = "Review Unstaged (toggle)" })
+vim.keymap.set("n", "<M-J>", require("config.review").next_hunk, { desc = "Next Hunk (across files)" })
+vim.keymap.set("n", "<M-K>", require("config.review").prev_hunk, { desc = "Prev Hunk (across files)" })
