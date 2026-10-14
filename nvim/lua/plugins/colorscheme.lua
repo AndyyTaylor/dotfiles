@@ -166,6 +166,34 @@ return {
           -- variants tried and rejected as hard to read)
           FlashLabel = { fg = vs.red, bold = true },
 
+          -- explorer: new files, untracked (?) or added (A). snacks links untracked to
+          -- NonText, and the explorer colours the filename by git status too, so new
+          -- files came out grey; light blue for both instead
+          SnacksPickerGitStatusUntracked = { fg = vs.sky },
+          SnacksPickerGitStatusAdded = { fg = vs.sky },
+
+          GitSignsAdd = { fg = vs.blue },
+          GitSignsChange = { fg = vs.blue },
+          GitSignsDelete = { fg = vs.red },
+          GitSignsAddLn = { bg = "#19212e" },
+          GitSignsChangeLn = { bg = "#19212e" },
+          GitSignsDeleteVirtLn = { bg = "#2d1a1f" },
+          GitSignsAddInline = { bg = "#3a4c6a" },
+          GitSignsChangeInline = { bg = "#3a4c6a" },
+          GitSignsDeleteInline = { bg = "#673b47" },
+          GitSignsAddLnInline = { bg = "#3a4c6a" },
+          GitSignsChangeLnInline = { bg = "#3a4c6a" },
+          GitSignsDeleteLnInline = { bg = "#673b47" },
+          GitSignsDeleteVirtLnInLine = { bg = "#673b47" },
+          GitSignsAddPreview = { bg = "#19212e" },
+          GitSignsDeletePreview = { bg = "#2d1a1f" },
+          DiffAdd = { bg = "#19212e" },
+          DiffChange = { bg = "#19212e" },
+          DiffText = { bg = "#3a4c6a" },
+          DiffDelete = { bg = "#2d1a1f" },
+          SnacksPickerGitStatusModified = { fg = vs.blue },
+          SnacksPickerGitStatusDeleted = { fg = vs.red },
+
           -- markup / JSX  <- "entity.name.tag", "entity.other.attribute-name"
           ["@tag"] = { fg = vs.sky },
           ["@tag.builtin"] = { fg = vs.sky },
