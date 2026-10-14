@@ -21,5 +21,15 @@ PROMPT='%F{red}Δ%f '
 RPROMPT=''
 
 # dex = the trading repo CLI (shadows /usr/bin/dex in interactive shells only,
-# so sway autostart still gets the real DesktopEntry tool)
-alias dex='/home/andy/dex/.venv/bin/python /home/andy/dex/py/main.py'
+# so sway autostart still gets the real DesktopEntry tool). runs whichever
+# checkout you're inside (~/dex, ~/dex2, ~/dex3, ...) with its own venv,
+# falling back to ~/dex from anywhere else
+dex() {
+    local root="$PWD"
+    while [[ "$root" != "/" && ! -f "$root/py/main.py" ]]; do root="${root:h}"; done
+    [[ -f "$root/py/main.py" ]] || root="$HOME/dex"
+    local venv="$root/.venv"
+    [[ -d "$venv" ]] || venv="$(git -C "$root" rev-parse --path-format=absolute --git-common-dir)/../.venv"
+    "$venv/bin/python" "$root/py/main.py" "$@"
+}
+export PATH="$HOME/.cargo/bin:$PATH"
