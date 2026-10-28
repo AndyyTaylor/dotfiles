@@ -294,3 +294,12 @@ require("config.pathopen").setup()
 vim.keymap.set("n", "<leader>gd", require("config.review").toggle, { desc = "Review Unstaged (toggle)" })
 vim.keymap.set("n", "<M-J>", require("config.review").next_hunk, { desc = "Next Hunk (across files)" })
 vim.keymap.set("n", "<M-K>", require("config.review").prev_hunk, { desc = "Prev Hunk (across files)" })
+
+-- Heat + asm from `dex run --perf` (config/perf_heat.lua).
+local perf_heat = require("config.perf_heat")
+perf_heat.setup()
+vim.keymap.set("n", "<leader>ph", perf_heat.toggle, { desc = "Perf Heat (toggle)" })
+vim.keymap.set("n", "<leader>pa", perf_heat.asm, { desc = "Perf Asm (toggle)" })
+vim.keymap.set("n", "<leader>pt", function()
+  perf_heat.top()
+end, { desc = "Perf Hot Spots" })

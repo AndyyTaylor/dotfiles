@@ -44,31 +44,82 @@ vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "TermOpen" }, {
 })
 
 -- ---------------------------------------------------------------------------
--- Open the file explorer at startup.
+-- Open the sideterm column and the file explorer at startup and after :restart.
 --
--- Only when nvim is opened as "the IDE" -- no args (`nvim`) or a single directory
--- arg (`nvim .`, `nvim ~/dex`). Editing a specific file (git commit messages,
--- quick one-off edits) skips it.
+-- Whenever nvim is opened on a project or a file, except where it is an editor
+-- for something else: nested inside a sideterm shell ($NVIM is set), diff mode,
+-- and files tools hand to $EDITOR -- git commit / rebase messages under .git/
+-- and temp files -- so those don't spawn a `claude agents` process.
 --
--- The sideterm column (lua/config/sideterm.lua) is deliberately *not* opened here:
--- it is on-demand only, via <leader>tt / <leader>ta / <leader>ts or :SideTerm. That
--- also means `claude agents` is only spawned once the column is first opened.
+-- :restart restores a session, and the session's `only` closes anything opened
+-- before it, so a restart opens the UI once SessionLoadPost has fired (:restart!
+-- has no session). options.lua keeps terminal and blank windows out of sessions,
+-- or the restore would bring back stray shells and an empty explorer slot.
 --
 -- This file loads on VeryLazy, which fires *after* VimEnter, so the usual VimEnter
 -- autocmd would never run -- hence the vim_did_enter branch.
 -- ---------------------------------------------------------------------------
 local function open_workspace_ui()
-  -- focus=false: the explorer window opens but the cursor stays in the editor.
-  Snacks.explorer({ focus = false })
+  local sideterm = require("config.sideterm")
+  if not sideterm.is_open() then
+    sideterm.open()
+  end
+  if #Snacks.picker.get({ source = "explorer" }) == 0 then
+    -- focus=false: the explorer window opens but the cursor stays in the editor.
+    Snacks.explorer({ focus = false })
+  end
 end
 
-local argc = vim.fn.argc()
-if argc == 0 or (argc == 1 and vim.fn.isdirectory(vim.fn.argv(0)) == 1) then
-  if vim.v.vim_did_enter == 1 then
-    vim.schedule(open_workspace_ui)
-  else
-    vim.api.nvim_create_autocmd("VimEnter", { once = true, callback = open_workspace_ui })
+local function editing_for_a_tool()
+  if vim.env.NVIM or vim.o.diff then
+    return true
   end
+  local tmp = vim.fs.normalize(vim.env.TMPDIR or "/tmp")
+  for _, arg in ipairs(vim.fn.argv()) do
+    local path = vim.fs.normalize(vim.fn.fnamemodify(arg, ":p"))
+    if path:find("/%.git/") or vim.startswith(path, tmp .. "/") then
+      return true
+    end
+  end
+  return false
+end
+
+local function when_entered(fn)
+  if vim.v.vim_did_enter == 1 then
+    vim.schedule(fn)
+  else
+    vim.api.nvim_create_autocmd("VimEnter", { once = true, callback = fn })
+  end
+end
+
+-- The session is restored before the lazy-loaded plugins are, so its buffers
+-- miss the read events treesitter and LSP attach on, and show up without
+-- highlighting. Re-:edit them once everything has loaded.
+local function after_restart()
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    local bo = vim.bo[buf]
+    if vim.api.nvim_buf_is_loaded(buf) and bo.buftype == "" and not bo.modified and vim.api.nvim_buf_get_name(buf) ~= "" then
+      vim.api.nvim_buf_call(buf, function()
+        vim.cmd("silent! edit")
+      end)
+    end
+  end
+  open_workspace_ui()
+end
+
+if vim.v.startreason == "restart" then
+  if vim.v.this_session == "" then
+    vim.api.nvim_create_autocmd("SessionLoadPost", {
+      once = true,
+      callback = function()
+        vim.schedule(after_restart)
+      end,
+    })
+  else
+    when_entered(after_restart)
+  end
+elseif vim.v.startreason == "restart!" or not editing_for_a_tool() then
+  when_entered(open_workspace_ui)
 end
 
 -- ---------------------------------------------------------------------------

@@ -11,6 +11,18 @@ end
 
 local saved = {}
 
+-- tracked, but never shown in review
+local exclude = { ".claude/", "ui/" }
+
+local function excluded(file)
+  for _, prefix in ipairs(exclude) do
+    if vim.startswith(file, prefix) then
+      return true
+    end
+  end
+  return false
+end
+
 local function nav_keys()
   return { J = { M.next_hunk, "Review: Next Hunk" }, K = { M.prev_hunk, "Review: Prev Hunk" } }
 end
@@ -77,6 +89,8 @@ local function set_nav_keys(on)
   })
 end
 
+local preview
+
 function M.toggle()
   active = not active
 
@@ -96,9 +110,14 @@ function M.toggle()
       jump = { close = false },
       layout = { preset = "sidebar", preview = false, layout = { position = "right" } },
       transform = function(item)
-        return item.status:sub(2, 2) ~= " "
+        return item.status:sub(2, 2) ~= " " and not excluded(item.file)
       end,
       win = { list = { keys = { ["l"] = "confirm" } } },
+      on_change = function(picker, item)
+        vim.schedule(function()
+          preview(picker, item)
+        end)
+      end,
     })
   else
     close_all("git_status")
@@ -119,7 +138,7 @@ local function unstaged_files(root)
   while i <= #entries do
     local xy, file = entries[i]:match("^(..) (.+)$")
     local y = xy:sub(2, 2)
-    if y ~= " " and y ~= "D" then
+    if y ~= " " and y ~= "D" and not excluded(file) then
       files[#files + 1] = { file = file, untracked = xy == "??" }
     end
     i = i + (xy:find("[RC]") and 2 or 1)
@@ -147,6 +166,24 @@ end
 local function jump(line)
   vim.api.nvim_win_set_cursor(0, { line, 0 })
   vim.cmd("normal! zz")
+end
+
+-- open the item under the cursor in the main window, keeping focus in the list
+function preview(picker, item)
+  local win = picker.main
+  if picker.closed or not (item and item.file) or not vim.api.nvim_win_is_valid(win) then
+    return
+  end
+
+  local path = vim.fs.normalize(item.cwd .. "/" .. item.file)
+  if not vim.uv.fs_stat(path) or vim.fs.normalize(vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(win))) == path then
+    return
+  end
+
+  vim.api.nvim_win_call(win, function()
+    vim.cmd.edit(vim.fn.fnameescape(path))
+    jump(hunk_starts(item.cwd, { file = item.file, untracked = item.status == "??" })[1])
+  end)
 end
 
 local function step(dir)

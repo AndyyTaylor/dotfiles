@@ -11,6 +11,7 @@ return {
         { "<leader>f", desc = "Find Files (Root Dir)" },
         { "<leader>'", desc = "Switch Source/Header (C/C++)" },
         { "<leader>t", group = "terminal" },
+        { "<leader>p", group = "perf" },
       },
     },
   },

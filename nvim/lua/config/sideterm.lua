@@ -23,6 +23,8 @@
 local M = {}
 
 M.width = 80
+-- Share of the column's height given to the `claude agents` pane; the shells split the rest.
+M.agents_share = 0.7
 
 -- Top pane runs `claude agents` ("Manage background agents"); bottom is a plain shell.
 -- Further shell panes can be stacked below with M.add() (<leader>tn); those are
@@ -82,21 +84,33 @@ local function show(key, cmd)
   wo.relativenumber = false
   wo.signcolumn = "no"
   wo.winfixwidth = true
+  -- keeps the agents/shell split when 'equalalways' or `wincmd =` (LazyVim runs it
+  -- on VimResized) evens out the layout; equalize() sets the heights explicitly
+  wo.winfixheight = true
   wo.spell = false
 end
 
--- Even split of the column's height between the open panes.
+-- The agents pane takes M.agents_share of the column's height, and the shell
+-- panes below split the rest evenly.
 local function equalize()
-  local wins, total = {}, 0
+  local shells, total = {}, 0
   for _, p in ipairs(PANES) do
     local st = state[p.key]
     if win_ok(st.win) then
-      wins[#wins + 1] = st.win
       total = total + vim.api.nvim_win_get_height(st.win)
+      if p.key ~= "agents" then
+        shells[#shells + 1] = st.win
+      end
     end
   end
-  for i = 1, #wins - 1 do -- last window takes the remainder
-    vim.api.nvim_win_set_height(wins[i], math.floor(total / #wins))
+  local agents = state.agents.win
+  local top = 0
+  if win_ok(agents) and #shells > 0 then
+    top = math.floor(total * M.agents_share)
+    vim.api.nvim_win_set_height(agents, top)
+  end
+  for i = 1, #shells - 1 do -- last window takes the remainder
+    vim.api.nvim_win_set_height(shells[i], math.floor((total - top) / #shells))
   end
 end
 
@@ -230,6 +244,18 @@ function M.setup()
       return { "agents", "shell", "new" }
     end,
     desc = "Toggle/focus the left terminal column",
+  })
+
+  vim.api.nvim_create_autocmd("VimResized", {
+    group = vim.api.nvim_create_augroup("sideterm_resize", { clear = true }),
+    desc = "Re-apply the agents/shell split to the new height",
+    callback = function()
+      vim.schedule(function()
+        if M.is_open() then
+          equalize()
+        end
+      end)
+    end,
   })
 
   vim.api.nvim_create_autocmd("WinEnter", {
