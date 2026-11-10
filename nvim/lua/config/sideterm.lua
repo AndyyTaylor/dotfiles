@@ -173,9 +173,16 @@ function M.add()
   table.insert(PANES, { key = key, cmd = nil })
   state[key] = { buf = nil, win = nil }
 
+  -- keep the agents pane exactly as tall as it was; only the shells share out the new pane
+  local agents = state.agents.win
+  local agents_height = win_ok(agents) and vim.api.nvim_win_get_height(agents)
+
   vim.cmd("belowright split")
   show(key, nil)
   equalize()
+  if agents_height and win_ok(agents) then
+    vim.api.nvim_win_set_height(agents, agents_height)
+  end
   vim.cmd("startinsert")
 end
 
@@ -253,6 +260,37 @@ function M.setup()
       vim.schedule(function()
         if M.is_open() then
           equalize()
+        end
+      end)
+    end,
+  })
+
+  -- A closing window's rows go to a neighbour, and 'winfixheight' doesn't stop that
+  -- neighbour being the agents pane. WinClosed runs before the window leaves the
+  -- layout, so pin the agents height and restore it once the close lands: the
+  -- freed rows then fall to the shell pane(s) instead.
+  vim.api.nvim_create_autocmd("WinClosed", {
+    group = vim.api.nvim_create_augroup("sideterm_close", { clear = true }),
+    desc = "Give a closed shell pane's rows back to the shells, not the agents pane",
+    callback = function(args)
+      local closed = tonumber(args.match)
+      local agents = state.agents and state.agents.win
+      if not win_ok(agents) or closed == agents then
+        return
+      end
+      local is_shell = false
+      for _, p in ipairs(PANES) do
+        if p.key ~= "agents" and state[p.key] and state[p.key].win == closed then
+          is_shell = true
+        end
+      end
+      if not is_shell then
+        return
+      end
+      local height = vim.api.nvim_win_get_height(agents)
+      vim.schedule(function()
+        if win_ok(agents) then
+          vim.api.nvim_win_set_height(agents, height)
         end
       end)
     end,

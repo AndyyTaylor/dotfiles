@@ -1,3 +1,4 @@
+local MODULE = ...
 local M = {}
 
 M.width = 80
@@ -133,22 +134,89 @@ local function annotate(buf)
   local n_lines = api.nvim_buf_line_count(buf)
   for line, h in pairs(by_line) do
     if line >= 1 and line <= n_lines and math.max(share(h.own), share(h.incl)) >= MIN_SHARE then
-      local virt = {}
-      if share(h.own) >= MIN_SHARE then
-        virt[#virt + 1] = { " " .. pct(h.own), "PerfHeatPct" }
-      end
-      if h.incl > h.own and share(h.incl - h.own) >= MIN_SHARE then
-        virt[#virt + 1] = { " Σ" .. vim.trim(pct(h.incl)), "PerfHeatIncl" }
-      end
+      local both = share(h.own) >= MIN_SHARE and h.incl > h.own and share(h.incl - h.own) >= MIN_SHARE
       local lvl = level(h.own, state.max_own)
       api.nvim_buf_set_extmark(buf, ns_src, line - 1, 0, {
         line_hl_group = lvl and ("PerfHeat" .. lvl) or nil,
-        virt_text = virt,
+        virt_text = both and { { " Σ" .. vim.trim(pct(h.incl)), "PerfHeatIncl" } } or nil,
         virt_text_pos = "eol",
         priority = 50,
       })
     end
   end
+end
+
+local STATUSCOLUMN = "%!v:lua.require'" .. MODULE .. "'.statuscolumn()"
+local base_statuscolumn
+
+local function base_column_fn(stc)
+  local expr = stc:match("^%%!v:lua%.(.+)%(%)$")
+  if expr then
+    local mod, fn = expr:match("^require'([^']+)'%.([%w_]+)$")
+    if mod then
+      return function()
+        return require(mod)[fn]()
+      end
+    end
+    return function()
+      local f = _G
+      for part in expr:gmatch("[^.]+") do
+        f = f[part]
+      end
+      return f()
+    end
+  elseif stc:sub(1, 2) == "%!" then
+    return function()
+      return vim.fn.eval(stc:sub(3))
+    end
+  end
+  stc = stc ~= "" and stc or "%s%l "
+  return function()
+    return stc
+  end
+end
+
+function M.statuscolumn()
+  local out = base_statuscolumn and base_statuscolumn() or ""
+  local by_line = state.heat and state.lines[key_of(api.nvim_buf_get_name(api.nvim_win_get_buf(vim.g.statusline_winid)))]
+  if not by_line then
+    return out
+  end
+  local h = vim.v.virtnum == 0 and by_line[vim.v.lnum]
+  if h and share(h.own) >= MIN_SHARE then
+    return out .. string.format("%%#PerfHeatPct# %5.2f%%%% %%*", 100 * share(h.own))
+  elseif h and share(h.incl) >= MIN_SHARE then
+    return out .. string.format("%%#PerfHeatIncl#Σ%5.2f%%%% %%*", 100 * share(h.incl))
+  end
+  return out .. string.rep(" ", 8)
+end
+
+local function install_statuscolumn()
+  if vim.go.statuscolumn == STATUSCOLUMN then
+    return
+  end
+  local base = vim.go.statuscolumn
+  base_statuscolumn = base_column_fn(base)
+  state.base_stc = base
+  vim.go.statuscolumn = STATUSCOLUMN
+  for _, win in ipairs(api.nvim_list_wins()) do
+    if vim.wo[win].statuscolumn == base then
+      vim.wo[win].statuscolumn = STATUSCOLUMN
+    end
+  end
+end
+
+local function remove_statuscolumn()
+  if not state.base_stc then
+    return
+  end
+  vim.go.statuscolumn = state.base_stc
+  for _, win in ipairs(api.nvim_list_wins()) do
+    if vim.wo[win].statuscolumn == STATUSCOLUMN then
+      vim.wo[win].statuscolumn = state.base_stc
+    end
+  end
+  state.base_stc = nil
 end
 
 local function annotate_all()
@@ -189,6 +257,7 @@ function M.load(target)
   state.heat = heat
   state.path = path
   index(heat)
+  install_statuscolumn()
   annotate_all()
   vim.notify(
     string.format(
@@ -252,6 +321,7 @@ function M.off()
     api.nvim_buf_clear_namespace(buf, ns_cur, 0, -1)
   end
   close_asm()
+  remove_statuscolumn()
   state.func = nil
 end
 

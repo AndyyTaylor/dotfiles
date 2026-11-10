@@ -16,6 +16,10 @@ fi
 unsetopt correct
 unsetopt correctall
 
+# Manjaro aliases cp to `cp -i`; Claude Code shells can't answer the overwrite
+# prompt and hang, so drop the alias there (CLAUDECODE=1) and keep it elsewhere.
+[[ -n $CLAUDECODE ]] && unalias cp 2>/dev/null
+
 # Use manjaro zsh prompt
 PROMPT='%F{red}Δ%f '
 RPROMPT=''
